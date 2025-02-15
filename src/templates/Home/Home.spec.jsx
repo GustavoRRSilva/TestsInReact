@@ -7,6 +7,7 @@ import {
   waitForElementToBeRemoved,
 } from '@testing-library/react';
 import { Home } from '.';
+import userEvent from '@testing-library/user-event';
 
 const handlers = [
   rest.get(
@@ -76,7 +77,49 @@ describe('<Home/>', () => {
     //Esperar que o texto de que não existem posts seja removido da tela
     await waitForElementToBeRemoved(noMorePosts);
 
-    //Mostrar a tela depois de os posts aparecerem
-    screen.debug();
+    const search = screen.getByPlaceholderText(/type your search/i);
+    expect(search).toBeInTheDocument();
+
+    const images = screen.getAllByRole('img');
+    expect(images.length).toBeGreaterThanOrEqual(2);
+
+    const button = screen.getByRole('button', { name: /load more posts/i });
+    expect(button).toBeInTheDocument();
+  });
+
+  it('should search posts when type in input', async () => {
+    const { debug } = render(<Home />);
+
+    const noMorePosts = screen.getByText('Não existem posts =(');
+
+    //Esperar que o texto de que não existem posts seja removido da tela
+    await waitForElementToBeRemoved(noMorePosts);
+
+    const input = screen.getByPlaceholderText(/type your search/i);
+    expect(input).toBeInTheDocument();
+
+    expect(
+      screen.getByRole('heading', { name: 'title 1 1' })
+    ).toBeInTheDocument();
+
+    const valueSearch = 'title 1';
+
+    userEvent.type(input, valueSearch);
+    debug();
+
+    expect(
+      screen.getByRole('heading', { name: 'title 1 1' })
+    ).toBeInTheDocument();
+
+    expect(
+      screen.queryByRole('heading', { name: 'title 2 2' })
+    ).not.toBeInTheDocument();
+
+    userEvent.clear(input);
+
+    const valueSearch2 = 'no more posts';
+    userEvent.type(input, valueSearch2);
+
+    expect(screen.getByText('Não existem posts =(')).toBeInTheDocument();
   });
 });
