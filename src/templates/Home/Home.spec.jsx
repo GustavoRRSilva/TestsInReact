@@ -88,7 +88,7 @@ describe('<Home/>', () => {
   });
 
   it('should search posts when type in input', async () => {
-    const { debug } = render(<Home />);
+    render(<Home />);
 
     const noMorePosts = screen.getByText('Não existem posts =(');
 
@@ -105,7 +105,6 @@ describe('<Home/>', () => {
     const valueSearch = 'title 1';
 
     userEvent.type(input, valueSearch);
-    debug();
 
     expect(
       screen.getByRole('heading', { name: 'title 1 1' })
@@ -121,5 +120,27 @@ describe('<Home/>', () => {
     userEvent.type(input, valueSearch2);
 
     expect(screen.getByText('Não existem posts =(')).toBeInTheDocument();
+  });
+
+  it('should add more posts when press load more button', async () => {
+    render(<Home />);
+
+    const noMorePosts = screen.getByText('Não existem posts =(');
+
+    await waitForElementToBeRemoved(noMorePosts);
+
+    let posts = screen.getAllByRole('heading');
+    expect(posts.length).toEqual(2);
+
+    const loadMorePostsButton = screen.getByRole('button', {
+      name: /load more/i,
+    });
+    expect(loadMorePostsButton).toBeInTheDocument();
+
+    userEvent.click(loadMorePostsButton);
+    posts = screen.getAllByRole('heading');
+
+    expect(posts.length).toEqual(3);
+    expect(loadMorePostsButton).toBeDisabled();
   });
 });
